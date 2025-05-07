@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -190,9 +191,73 @@ namespace KSU.CIS300.Snake
             }
             return snake;
         }
-        private List<Direction> BuildPath(Dictionary<GameNode, (GameNode, Direction)> path, GameNode dest)
+        /// <summary>
+        /// Reverses the given path from the destination to the head of the snake.
+        /// </summary>
+        /// <param name="path">Dictionary of paths</param>
+        /// <param name="dest">Destination</param>
+        /// <returns>List of directions of path</returns>
+        private List<Direction> BuildPath(Dictionary<GameNode, (GameNode, Direction)> path, GameNode dest)              // ASK HERE IF THIS METHOD WORKS
         {
+            List<Direction> directions = new();
+            while (path[dest].Item1 != Head)
+            {
+                directions.Add(path[dest].Item2);
+                dest = path[dest].Item1;
+            }
+            directions.Reverse();
+            return directions;
+        }
+        /// <summary>
+        /// Custom method for finding adjacent 'Edges'.
+        /// </summary>
+        /// <param name="source">Source node</param>
+        /// <returns>List of adjacent edges</returns>
+        public List<(GameNode, GameNode, Direction)> AdjacentEdges(GameNode source)
+        {
+            List<(GameNode, GameNode, Direction)> adj = new();
+            List<GameNode> snakeBody = GetSnakePath();
 
+            GameNode nodeUp = GetNextNode(Direction.Up, source);
+            if (!snakeBody.Contains(nodeUp) && nodeUp != null)
+            {
+                adj.Add((source, nodeUp, Direction.Up));
+            }
+            GameNode nodeDown = GetNextNode(Direction.Down, source);
+            if (!snakeBody.Contains(nodeDown) && nodeDown != null)
+            {
+                adj.Add((source, nodeDown, Direction.Down));
+            }
+            GameNode nodeRight = GetNextNode(Direction.Right, source);
+            if (!snakeBody.Contains(nodeRight) && nodeRight != null)
+            {
+                adj.Add((source, nodeRight, Direction.Right));
+            }
+            GameNode nodeLeft = GetNextNode(Direction.Left, source);
+            if (!snakeBody.Contains(nodeLeft) && nodeLeft != null)
+            {
+                adj.Add((source, nodeLeft, Direction.Left));
+            }
+            return adj;
+        }
+
+        public List<Direction> FindShortestAiPath(GameNode dest)
+        {
+            Dictionary<GameNode, (GameNode, Direction)> paths = new();
+            Queue<(GameNode source, GameNode dest, Direction dir)> queue = new();
+            foreach ((GameNode, GameNode, Direction) tup in AdjacentEdges(Head))
+            {
+                queue.Enqueue(tup);
+            }
+            while (queue.Count > 0)
+            {
+                (GameNode, GameNode, Direction) t = queue.Dequeue();
+                GameNode d = t.Item2;
+                if (!paths.ContainsKey(d))
+                {
+                    paths.Add(d, (t.Item2, t.Item3));
+                }
+            }
         }
     }
     /// <summary>
