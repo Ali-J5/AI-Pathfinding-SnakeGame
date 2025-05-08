@@ -5,6 +5,7 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows.Forms;
 
 namespace KSU.CIS300.Snake
 {
@@ -213,14 +214,18 @@ namespace KSU.CIS300.Snake
         /// </summary>
         /// <param name="source">Source node</param>
         /// <returns>List of adjacent edges</returns>
-        public List<(GameNode, GameNode, Direction)> AdjacentEdges(GameNode source)
+        public List<(GameNode, GameNode, Direction)> AdjacentEdges(GameNode source, bool isTail)
         {
             List<(GameNode, GameNode, Direction)> adj = new();
             List<GameNode> snakeBody = GetSnakePath();
 
             GameNode nodeUp = GetNextNode(Direction.Up, source);
-            if (!snakeBody.Contains(nodeUp) && nodeUp != null)
+            if (!snakeBody.Contains(nodeUp) && nodeUp != null && nodeUp.Data != GridData.SnakeHead && nodeUp.Data != GridData.SnakeBody)
             {
+                if (isTail && nodeUp == Tail)
+                {
+                    adj.Add((source, nodeUp, Direction.Up));
+                }
                 adj.Add((source, nodeUp, Direction.Up));
             }
             GameNode nodeDown = GetNextNode(Direction.Down, source);
@@ -243,9 +248,19 @@ namespace KSU.CIS300.Snake
 
         public List<Direction> FindShortestAiPath(GameNode dest)
         {
+            bool isTail;
+            if (dest == Tail)
+            {
+                isTail = true;
+            }
+            else
+            {
+                isTail = false;
+            }
             Dictionary<GameNode, (GameNode, Direction)> paths = new();
+            paths[Head] = (Head, Direction.None);
             Queue<(GameNode source, GameNode dest, Direction dir)> queue = new();
-            foreach ((GameNode, GameNode, Direction) tup in AdjacentEdges(Head))
+            foreach ((GameNode, GameNode, Direction) tup in AdjacentEdges(Head, isTail))
             {
                 queue.Enqueue(tup);
             }
@@ -255,9 +270,22 @@ namespace KSU.CIS300.Snake
                 GameNode d = t.Item2;
                 if (!paths.ContainsKey(d))
                 {
-                    paths.Add(d, (t.Item2, t.Item3));
+                    paths[d] = (t.Item1, t.Item3);
+                    if (t.Item2 == dest)
+                    {
+                        return BuildPath(paths, dest);
+                    }
+                    foreach ((GameNode, GameNode, Direction) tup2 in AdjacentEdges(t.Item2, isTail))
+                    {
+                        queue.Enqueue(tup2);
+                    }
                 }
             }
+            return new();
+        }
+        public Queue<Direction> FindLongestAiPath()
+        {
+            return new();
         }
     }
     /// <summary>
