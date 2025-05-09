@@ -43,6 +43,23 @@ namespace KSU.CIS300.Snake
         /// This will be used to give the food color.
         /// </summary>
         private SolidBrush _foodBrush = new(Color.Yellow);
+        /// <summary>
+        /// gives each snake square an outline.
+        /// </summary>
+        private Pen _pen = new(Color.Blue, 2);
+        /// <summary>
+        /// Allows the UserInterface to cancel or stop the async StartMoving.
+        /// </summary>
+        private CancellationTokenSource _cancelSource = new();
+
+        private void NewGame(int size, int speed)
+        {
+            _game = new(size,speed, uxIsAI.Checked);
+            uxPictureBox.Width = 600;
+            uxPictureBox.Height = 600;
+            UserInterface.size = 
+
+        }
 
         private void PictureBox_Paint(object sender, PaintEventArgs e)
         {
