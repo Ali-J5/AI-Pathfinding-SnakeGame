@@ -213,6 +213,7 @@ namespace KSU.CIS300.Snake
         /// Custom method for finding adjacent 'Edges'.
         /// </summary>
         /// <param name="source">Source node</param>
+        /// <param name="isTail">If the destination is the Tail</param>
         /// <returns>List of adjacent edges</returns>
         public List<(GameNode, GameNode, Direction)> AdjacentEdges(GameNode source, bool isTail)
         {
@@ -222,30 +223,51 @@ namespace KSU.CIS300.Snake
             GameNode nodeUp = GetNextNode(Direction.Up, source);
             if (!snakeBody.Contains(nodeUp) && nodeUp != null && nodeUp.Data != GridData.SnakeHead && nodeUp.Data != GridData.SnakeBody)
             {
-                if (isTail && nodeUp == Tail)
-                {
-                    adj.Add((source, nodeUp, Direction.Up));
-                }
                 adj.Add((source, nodeUp, Direction.Up));
             }
+            if (isTail && nodeUp == Tail)
+            {
+                adj.Add((source, nodeUp, Direction.Up));
+            }
+            adj.Add((source, nodeUp, Direction.Up));
+
             GameNode nodeDown = GetNextNode(Direction.Down, source);
-            if (!snakeBody.Contains(nodeDown) && nodeDown != null)
+            if (!snakeBody.Contains(nodeDown) && nodeDown != null && nodeDown.Data != GridData.SnakeHead && nodeDown.Data != GridData.SnakeBody)
             {
                 adj.Add((source, nodeDown, Direction.Down));
             }
+            if (isTail && nodeDown == Tail)
+            {
+                adj.Add((source, nodeDown, Direction.Up));
+            }
+
             GameNode nodeRight = GetNextNode(Direction.Right, source);
-            if (!snakeBody.Contains(nodeRight) && nodeRight != null)
+            if (!snakeBody.Contains(nodeRight) && nodeRight != null && nodeRight.Data != GridData.SnakeHead && nodeRight.Data != GridData.SnakeBody)
             {
                 adj.Add((source, nodeRight, Direction.Right));
             }
+            if (isTail && nodeRight == Tail)
+            {
+                adj.Add((source, nodeRight, Direction.Up));
+            }
+
             GameNode nodeLeft = GetNextNode(Direction.Left, source);
-            if (!snakeBody.Contains(nodeLeft) && nodeLeft != null)
+            if (!snakeBody.Contains(nodeLeft) && nodeLeft != null && nodeLeft.Data != GridData.SnakeHead && nodeLeft.Data != GridData.SnakeBody)
             {
                 adj.Add((source, nodeLeft, Direction.Left));
             }
+            if (isTail && nodeLeft == Tail)
+            {
+                adj.Add((source, nodeLeft, Direction.Up));
+            }
+
             return adj;
         }
-
+        /// <summary>
+        /// Calculates the shortest path from the head of the snake to the destination.
+        /// </summary>
+        /// <param name="dest">Destintation node</param>
+        /// <returns>Shortest path</returns>
         public List<Direction> FindShortestAiPath(GameNode dest)
         {
             bool isTail;
@@ -283,9 +305,70 @@ namespace KSU.CIS300.Snake
             }
             return new();
         }
-        public Queue<Direction> FindLongestAiPath()
+        /// <summary>
+        /// Used to find the Hamiltonian path.
+        /// </summary>
+        /// <returns></returns>
+        public Queue<Direction> FindLongestAiPath()     // Extremely stuck here
         {
-            return new();
+            List<Direction> path = FindShortestAiPath(Tail);
+            if (path.Count == 0)
+            {
+                return new();
+            }
+            bool[,] visited = new bool[_size, _size];
+            GameNode current = Head;
+            visited[current.X, current.Y] = true;
+            Direction currentDir = Direction.None;
+            foreach (Direction dir in path)
+            {
+                current = GetNextNode(dir, current);
+                visited[current.X, current.Y] = true;
+                currentDir = dir;
+            }
+            int index = 0;
+            GameNode nextNode;
+            Direction tempNextDir;
+            List<Direction> build = new();
+            while (true)
+            {
+                //nextNode = GetNextNode(currentDir, current);
+                if (currentDir == Direction.Up || currentDir == Direction.Down)
+                {
+                    tempNextDir = _leftRight[index];
+                    nextNode = GetNextNode(tempNextDir, current);
+                    if (!visited[nextNode.X, nextNode.Y] && nextNode.X < _size && nextNode.Y < _size && nextNode.X >= 0 && nextNode.Y >= 0)
+                    {
+                        build.Add(currentDir);
+                        if (index == 0)
+                        {
+                            build.Add(_leftRight[1]);
+                        }
+                        else
+                        {
+                            build.Add(_leftRight[0]);
+                        }
+                    }
+
+                }
+                if (currentDir == Direction.Left || currentDir == Direction.Right)
+                {
+                    tempDir = _upDown[index];
+                    nextNode = GetNextNode(tempDir, current);
+                    if (!visited[nextNode.X, nextNode.Y])
+                    {
+
+                    }
+                }
+                if (index == 1)
+                {
+                    current = nextNode;
+
+                }
+
+            }
+
+
         }
     }
     /// <summary>
