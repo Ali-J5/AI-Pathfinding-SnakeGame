@@ -23,10 +23,27 @@ namespace KSU.CIS300.Snake
         {
             InitializeComponent();
         }
+        /// <summary>
+        /// This is the calculated size of a game square.
+        /// </summary>
+        private int _squareWidth;
+        /// <summary>
+        /// The width and height of the game in number of nodes/game squares.
+        /// </summary>
+        private int _size;
+        /// <summary>
+        /// Gives the UI access to informing the game.
+        /// </summary>
+        private Game _game;
+        /// <summary>
+        /// This will be used to give the snake color.
+        /// </summary>
+        private SolidBrush _bodyBrush = new(Color.Cyan);
+        /// <summary>
+        /// This will be used to give the food color.
+        /// </summary>
+        private SolidBrush _foodBrush = new(Color.Yellow);
 
-        
-
-       
         private void PictureBox_Paint(object sender, PaintEventArgs e)
         {
 

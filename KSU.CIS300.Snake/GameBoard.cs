@@ -74,6 +74,7 @@ namespace KSU.CIS300.Snake
             centerNode.Data = GridData.SnakeHead;
             Head = centerNode;
             Tail = centerNode;
+            SnakeSize = 1;
             AddFood();
         }
         /// <summary>
@@ -106,19 +107,19 @@ namespace KSU.CIS300.Snake
         {
             int x = current.X;
             int y = current.Y;
-            if (dir == Direction.Up)
-            {
-                y++;
-            }
-            else if (dir == Direction.Down)
+            if (dir == Direction.Up && y-1 >= 0)
             {
                 y--;
             }
-            else if (dir == Direction.Left)
+            else if (dir == Direction.Down && y+1<_size)
+            {
+                y++;
+            }
+            else if (dir == Direction.Left && x-1 >= 0)
             {
                 x--;
             }
-            else if (dir == Direction.Right)
+            else if (dir == Direction.Right && x+1 <_size)
             {
                 x++;
             }
@@ -127,10 +128,6 @@ namespace KSU.CIS300.Snake
                 return null;
             }
 
-            if (x < 0 || y < 0 || x >= _size || y >= _size)
-            {
-                return null;
-            }
             return Grid[x, y];
         }
         /// <summary>
@@ -145,7 +142,7 @@ namespace KSU.CIS300.Snake
             {
                 return SnakeStatus.Collision;
             }
-            if (Head.SnakeEdge != null && next == Head.SnakeEdge)
+            if (next.SnakeEdge == Head)
             {
                 return SnakeStatus.InvalidDirection;
             }
@@ -154,28 +151,37 @@ namespace KSU.CIS300.Snake
                 return SnakeStatus.Collision;
             }
 
+            GridData data = next.Data;
+            next.Data = GridData.SnakeHead;
             Head.Data = GridData.SnakeBody;
             Head.SnakeEdge = next;
-            Head = next;
-            Head.Data = GridData.SnakeHead;
-            if (next.Data == GridData.SnakeFood)
+            if (data == GridData.SnakeFood)
             {
+                Head = next;
                 SnakeSize++;
-                if (SnakeSize == _size * _size)
+                if (SnakeSize == Grid.Length)
                 {
                     return SnakeStatus.Win;
                 }
                 AddFood();
                 return SnakeStatus.Eating;
             }
-            if (Head != Tail)
+            else
             {
-                Tail.Data = GridData.Empty;
-                GameNode temp = Tail.SnakeEdge;
-                Tail.SnakeEdge = null;
-                Tail = temp;
+                if (Head != Tail)
+                {
+                    Tail.Data = GridData.Empty;
+                    GameNode temp = Tail.SnakeEdge;
+                    Tail.SnakeEdge = null;
+                    Tail = temp;
+                }
+                else
+                {
+                    SnakeSize++;
+                }
+                Head = next;
+                return SnakeStatus.Moving;
             }
-            return SnakeStatus.Moving;
         }
         /// <summary>
         /// List of game nodes that contain the snake starting from the tail.
@@ -201,12 +207,16 @@ namespace KSU.CIS300.Snake
         private List<Direction> BuildPath(Dictionary<GameNode, (GameNode, Direction)> path, GameNode dest)              // ASK HERE IF THIS METHOD WORKS
         {
             List<Direction> directions = new();
-            while (path[dest].Item1 != Head)
+            Stack<Direction> stack = new Stack<Direction>();
+            while (dest != Head)
             {
-                directions.Add(path[dest].Item2);
+                stack.Push(path[dest].Item2);
                 dest = path[dest].Item1;
             }
-            directions.Reverse();
+            while (stack.Count > 0)
+            {
+                directions.Add(stack.Pop());
+            }
             return directions;
         }
         /// <summary>
@@ -218,49 +228,15 @@ namespace KSU.CIS300.Snake
         public List<(GameNode, GameNode, Direction)> AdjacentEdges(GameNode source, bool isTail)
         {
             List<(GameNode, GameNode, Direction)> adj = new();
-            List<GameNode> snakeBody = GetSnakePath();
-
-            GameNode nodeUp = GetNextNode(Direction.Up, source);
-            if (!snakeBody.Contains(nodeUp) && nodeUp != null && nodeUp.Data != GridData.SnakeHead && nodeUp.Data != GridData.SnakeBody)
+            GameNode next;
+            foreach (Direction dir in _aiDirection)
             {
-                adj.Add((source, nodeUp, Direction.Up));
+                next = GetNextNode(dir, source);
+                if (next != null && ((isTail && next == Tail && Tail.SnakeEdge != source) || next.Data != GridData.SnakeBody) && next.Data != GridData.SnakeHead)
+                {
+                    adj.Add((source, next, dir));
+                }
             }
-            if (isTail && nodeUp == Tail)
-            {
-                adj.Add((source, nodeUp, Direction.Up));
-            }
-            adj.Add((source, nodeUp, Direction.Up));
-
-            GameNode nodeDown = GetNextNode(Direction.Down, source);
-            if (!snakeBody.Contains(nodeDown) && nodeDown != null && nodeDown.Data != GridData.SnakeHead && nodeDown.Data != GridData.SnakeBody)
-            {
-                adj.Add((source, nodeDown, Direction.Down));
-            }
-            if (isTail && nodeDown == Tail)
-            {
-                adj.Add((source, nodeDown, Direction.Up));
-            }
-
-            GameNode nodeRight = GetNextNode(Direction.Right, source);
-            if (!snakeBody.Contains(nodeRight) && nodeRight != null && nodeRight.Data != GridData.SnakeHead && nodeRight.Data != GridData.SnakeBody)
-            {
-                adj.Add((source, nodeRight, Direction.Right));
-            }
-            if (isTail && nodeRight == Tail)
-            {
-                adj.Add((source, nodeRight, Direction.Up));
-            }
-
-            GameNode nodeLeft = GetNextNode(Direction.Left, source);
-            if (!snakeBody.Contains(nodeLeft) && nodeLeft != null && nodeLeft.Data != GridData.SnakeHead && nodeLeft.Data != GridData.SnakeBody)
-            {
-                adj.Add((source, nodeLeft, Direction.Left));
-            }
-            if (isTail && nodeLeft == Tail)
-            {
-                adj.Add((source, nodeLeft, Direction.Up));
-            }
-
             return adj;
         }
         /// <summary>
@@ -270,18 +246,10 @@ namespace KSU.CIS300.Snake
         /// <returns>Shortest path</returns>
         public List<Direction> FindShortestAiPath(GameNode dest)
         {
-            bool isTail;
-            if (dest == Tail)
-            {
-                isTail = true;
-            }
-            else
-            {
-                isTail = false;
-            }
+            bool isTail = Tail == dest;
             Dictionary<GameNode, (GameNode, Direction)> paths = new();
             paths[Head] = (Head, Direction.None);
-            Queue<(GameNode source, GameNode dest, Direction dir)> queue = new();
+            Queue<(GameNode, GameNode, Direction)> queue = new();
             foreach ((GameNode, GameNode, Direction) tup in AdjacentEdges(Head, isTail))
             {
                 queue.Enqueue(tup);
@@ -308,67 +276,118 @@ namespace KSU.CIS300.Snake
         /// <summary>
         /// Used to find the Hamiltonian path.
         /// </summary>
-        /// <returns></returns>
+        /// <returns>Longest Path</returns>
         public Queue<Direction> FindLongestAiPath()     // Extremely stuck here
         {
             List<Direction> path = FindShortestAiPath(Tail);
             if (path.Count == 0)
             {
-                return new();
+                return null;
             }
             bool[,] visited = new bool[_size, _size];
+            Direction[] exitDir = null;
             GameNode current = Head;
             visited[current.X, current.Y] = true;
-            Direction currentDir = Direction.None;
             foreach (Direction dir in path)
             {
                 current = GetNextNode(dir, current);
                 visited[current.X, current.Y] = true;
-                currentDir = dir;
             }
             int index = 0;
             GameNode nextNode;
-            Direction tempNextDir;
-            List<Direction> build = new();
-            while (true)
+            current = Head;
+            while (index < path.Count)
             {
-                //nextNode = GetNextNode(currentDir, current);
-                if (currentDir == Direction.Up || currentDir == Direction.Down)
-                {
-                    tempNextDir = _leftRight[index];
-                    nextNode = GetNextNode(tempNextDir, current);
-                    if (!visited[nextNode.X, nextNode.Y] && nextNode.X < _size && nextNode.Y < _size && nextNode.X >= 0 && nextNode.Y >= 0)
-                    {
-                        build.Add(currentDir);
-                        if (index == 0)
-                        {
-                            build.Add(_leftRight[1]);
-                        }
-                        else
-                        {
-                            build.Add(_leftRight[0]);
-                        }
-                    }
-
-                }
+                Direction currentDir = path[index];
+                nextNode = GetNextNode(currentDir, current);
                 if (currentDir == Direction.Left || currentDir == Direction.Right)
                 {
-                    tempDir = _upDown[index];
-                    nextNode = GetNextNode(tempDir, current);
-                    if (!visited[nextNode.X, nextNode.Y])
-                    {
+                    exitDir = _upDown;
+                }
+                else
+                {
+                    exitDir = _leftRight;
+                }
 
+                bool extend = false;
+                foreach (Direction dir in exitDir)
+                {
+                    GameNode currentExit = GetNextNode(dir, current);
+                    GameNode nextExit = GetNextNode(dir, nextNode);
+                    if (currentExit != null && nextExit != null &&
+                        !visited[currentExit.X, currentExit.Y] &&
+                        !visited[nextExit.X, nextExit.Y])
+                    {
+                        visited[currentExit.X, currentExit.Y] = true;
+                        visited[nextExit.X, nextExit.Y] = true;
+                        path.Insert(index, dir);
+                        path.Insert(index + 2, OppositeDir(dir));
+                        extend = true;
+                        break;
                     }
                 }
-                if (index == 1)
+                if (!extend)
                 {
                     current = nextNode;
-
+                    index++;
                 }
-
             }
+            while(current != Head)
+            {
+                if (current.SnakeEdge.X - current.X == 0)
+                {
+                    if (current.SnakeEdge.Y - current.Y == -1)
+                    {
+                        path.Add(Direction.Up);
+                    }
+                    else
+                    {
+                        path.Add(Direction.Down);
+                    }
+                }
+                else
+                {
+                    if (current.SnakeEdge.X - current.X == -1)
+                    {
+                        path.Add(Direction.Right);
+                    }
+                    else
+                    {
+                        path.Add(Direction.Left);
+                    }
+                }
+                current = current.SnakeEdge;
+            }
+            Queue<Direction> queue = new Queue<Direction>();
+            foreach(Direction dir in path)
+            {
+                queue.Enqueue(dir);
+            }
+            return queue;
 
 
+        }
+        /// <summary>
+        /// Finds the opposite direction
+        /// </summary>
+        /// <param name="dir">Direction</param>
+        /// <returns>Opposite</returns>
+        private Direction OppositeDir(Direction dir)
+        {
+            if (dir == Direction.Left)
+            {
+                return Direction.Right;
+            }
+            if (dir == Direction.Right)
+            {
+                return Direction.Left;
+            }
+            if (dir == Direction.Down)
+            {
+                return Direction.Up;
+            }
+            
+            return Direction.Down;
         }
     }
     /// <summary>
