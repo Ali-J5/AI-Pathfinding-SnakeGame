@@ -103,6 +103,10 @@ namespace KSU.CIS300.Snake
         private void PictureBox_Paint(object sender, PaintEventArgs e)
         {
             Graphics graphics = e.Graphics;
+            if (_game == null)
+            {
+                return;
+            }
             foreach (GameNode node in _game.GetSnakePath())
             {
                 Rectangle rectangle = new(node.X*_squareWidth,node.Y*_squareWidth,_squareWidth,_squareWidth);
