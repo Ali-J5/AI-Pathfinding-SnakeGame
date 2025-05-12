@@ -25,6 +25,7 @@ namespace KSU.CIS300.Snake
         public UserInterface()
         {
             InitializeComponent();
+            this.KeyPreview = true;
         }
         /// <summary>
         /// This is the calculated size of a game square.
@@ -62,12 +63,16 @@ namespace KSU.CIS300.Snake
         private void NewGame(int size, int speed)
         {
             _cancelSource.Cancel();
+            _cancelSource = new CancellationTokenSource();
+
             _size = size;
             _game = new(size,speed, uxIsAI.Checked);
             uxPictureBox.Width = 600;
             uxPictureBox.Height = 600;
-            this.Size = new(uxPictureBox.Width+40, uxPictureBox.Height + uxMenuStrip.Height+60);
+
+            this.Size = new(uxPictureBox.Width+25, uxPictureBox.Height + uxMenuStrip.Height+55);
             _squareWidth = uxPictureBox.Width / size;
+
             uxScore.DataBindings.Clear();
             uxScore.DataBindings.Add("Text", _game, "Score");
 
@@ -102,11 +107,12 @@ namespace KSU.CIS300.Snake
         /// <param name="e">Event</param>
         private void PictureBox_Paint(object sender, PaintEventArgs e)
         {
-            Graphics graphics = e.Graphics;
             if (_game == null)
             {
                 return;
             }
+
+            Graphics graphics = e.Graphics;
             foreach (GameNode node in _game.GetSnakePath())
             {
                 Rectangle rectangle = new(node.X*_squareWidth,node.Y*_squareWidth,_squareWidth,_squareWidth);
@@ -129,7 +135,7 @@ namespace KSU.CIS300.Snake
         /// <param name="e">Event</param>
         private void UserInterface_KeyDown(object sender, KeyEventArgs e)
         {
-            if (_game.Play)
+            if (_game != null && _game.Play && !uxIsAI.Checked)
             {
                 if (e.KeyCode == Keys.Up)
                 {
