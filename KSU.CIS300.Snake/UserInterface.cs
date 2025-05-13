@@ -1,5 +1,9 @@
 ﻿/*
+ * UserInterface.cs
  * Author: Josh Weese
+ * Modified by: Ali Jebril
+ * CIS300
+ * Homework 5
  */
 using System;
 using System.Collections.Generic;

@@ -1,4 +1,7 @@
-﻿using System;
+﻿/* GameNode.cs
+ * Author: Ali Jebril
+ */
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;

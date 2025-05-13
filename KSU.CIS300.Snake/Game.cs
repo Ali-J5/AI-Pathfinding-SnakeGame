@@ -1,4 +1,7 @@
-﻿using System;
+﻿/* Game.cs
+ * Author: Ali Jebril
+ */
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
@@ -96,6 +99,10 @@ namespace KSU.CIS300.Snake
         {
             while (Play && !cancelToken.IsCancellationRequested) // Correct format?
             {
+                if (_isAI)
+                {
+                    KeyPress = _aiPath.Dequeue();
+                }
                 Status = Board.MoveSnake(KeyPress);
                 progress.Report(Status);
                 if (Status == SnakeStatus.Collision)
@@ -128,6 +135,10 @@ namespace KSU.CIS300.Snake
                     Play = false;
                 }
                 await Task.Delay(_delay);
+                if (_isAI)
+                {
+                    _aiPath.Enqueue(KeyPress);
+                }
             }
         }
         /// <summary>
