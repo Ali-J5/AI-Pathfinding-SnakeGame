@@ -1,9 +1,8 @@
 ﻿/*
  * UserInterface.cs
- * Author: Josh Weese
+ * Author: Dr Josh Weese
  * Modified by: Ali Jebril
- * CIS300
- * Homework 5
+ * Data Structures Course Project
  */
 using System;
 using System.Collections.Generic;

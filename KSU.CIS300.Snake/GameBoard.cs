@@ -207,7 +207,7 @@ namespace KSU.CIS300.Snake
         /// <param name="path">Dictionary of paths</param>
         /// <param name="dest">Destination</param>
         /// <returns>List of directions of path</returns>
-        private List<Direction> BuildPath(Dictionary<GameNode, (GameNode, Direction)> path, GameNode dest)              // ASK HERE IF THIS METHOD WORKS
+        private List<Direction> BuildPath(Dictionary<GameNode, (GameNode, Direction)> path, GameNode dest)
         {
             List<Direction> directions = new();
             Stack<Direction> stack = new Stack<Direction>();
@@ -280,7 +280,7 @@ namespace KSU.CIS300.Snake
         /// Used to find the Hamiltonian path.
         /// </summary>
         /// <returns>Longest Path</returns>
-        public Queue<Direction> FindLongestAiPath()     // Extremely stuck here
+        public Queue<Direction> FindLongestAiPath()
         {
             List<Direction> path = FindShortestAiPath(Tail);
             if (path.Count == 0)

@@ -49,7 +49,7 @@ namespace KSU.CIS300.Snake
                 if (_score != value)
                 {
                     _score = value;
-                    OnPropertyChanged("Score");              //check here
+                    OnPropertyChanged("Score");
                 }
             }
         }
@@ -78,7 +78,7 @@ namespace KSU.CIS300.Snake
         {
             _isAI = isAI;
             Size = size;
-            _score = 2;                           //ask if its right score
+            _score = 2;
             Play = true;
             _delay = speed;
 
@@ -86,7 +86,7 @@ namespace KSU.CIS300.Snake
             Board.MoveSnake(Direction.Up);
             if (_isAI)
             {
-                _aiPath = Board.FindLongestAiPath(); //ask here if its right method
+                _aiPath = Board.FindLongestAiPath();
             }
         }
         /// <summary>
@@ -97,7 +97,7 @@ namespace KSU.CIS300.Snake
         /// <returns>Task</returns>
         public async Task StartMoving(IProgress<SnakeStatus> progress, CancellationToken cancelToken)
         {
-            while (Play && !cancelToken.IsCancellationRequested) // Correct format?
+            while (Play && !cancelToken.IsCancellationRequested)
             {
                 if (_isAI)
                 {
